@@ -6,4 +6,7 @@ gem 'awesome_print'
 gem 'nokogiri'
 gem 'time_diff'
 
+gem 'dotenv'
+gem 'rubyXL'
+
 gem 'rspec'

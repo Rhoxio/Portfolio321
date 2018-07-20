@@ -1,8 +1,16 @@
-# require "portfolio_321/version"
 require "selenium-webdriver"
+
+# Dir["./**/*.rb"].each {|file| require file }
+
+# ExportData.test_linkage
 
 module Portfolio321
   # Your code goes here...
+
+  def initialize
+    # Need to set up ENV to handle logging in for us automatically.
+    # Need to set up global set for driver that will need to log in.
+  end
 
   def self.log_in
 
@@ -38,5 +46,3 @@ module Portfolio321
   end
 
 end
-
-Portfolio321.log_in
