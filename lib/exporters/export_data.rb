@@ -5,7 +5,7 @@ class ExportData
   end
 
   def self.export_to_csv(input)
-    
+    input
   end
 
 end
