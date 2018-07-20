@@ -7,10 +7,10 @@ require "awesome_print"
 # Double splat is all directories, single splat is all files.
 Dir["./lib/**/*.rb"].each {|file| require file }
 
-# Global variable for the driver to keep things consistent.
+# Global variables for the driver and wait to keep things consistent.
 $driver = Selenium::WebDriver.for :chrome
+$wait = Selenium::WebDriver::Wait.new(:timeout => 15)
 
-
-# ExportData.test_linkage
-Portfolio321.log_in
-# ap XLSXParser.parse('./files/xlsx/test.xlsx')[0][0][0]
+app = Portfolio321.new({ log_in: true })
+p app.driver
+app.test_action
