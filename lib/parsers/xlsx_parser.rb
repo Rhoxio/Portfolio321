@@ -1,5 +1,3 @@
-require 'rubyXL'
-
 class XLSXParser
 
   def self.parse(path)
