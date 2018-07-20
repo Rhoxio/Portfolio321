@@ -1,4 +1,5 @@
 require "selenium-webdriver"
+require "awesome_print"
 
 # Dir["./**/*.rb"].each {|file| require file }
 

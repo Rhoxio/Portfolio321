@@ -5,5 +5,6 @@ require 'dotenv/load'
 # Double splat is all directories, single splat is all files.
 Dir["./lib/**/*.rb"].each {|file| require file }
 
-ExportData.test_linkage
-Portfolio321.log_in
+# ExportData.test_linkage
+# Portfolio321.log_in
+ap XLSXParser.parse('./files/xlsx/test.xlsx')[0][0][0]
