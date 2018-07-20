@@ -1,10 +1,3 @@
-require "selenium-webdriver"
-require "awesome_print"
-
-# Dir["./**/*.rb"].each {|file| require file }
-
-# ExportData.test_linkage
-
 module Portfolio321
   # Your code goes here...
 
@@ -20,9 +13,9 @@ module Portfolio321
     wait = Selenium::WebDriver::Wait.new(:timeout => 15)
 
     loginBox = driver.find_element(:id, "LoginUsername")
-    loginBox.send_keys("program_roller")
+    loginBox.send_keys(ENV["USERNAME"])
     pwBox = driver.find_element(:id, "LoginPassword")
-    pwBox.send_keys("x2246rwq")
+    pwBox.send_keys(ENV["PASSWORD"])
     signinBtn = driver.find_element(:id, "Login")
     signinBtn.click()
 
