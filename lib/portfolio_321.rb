@@ -45,28 +45,20 @@ class Portfolio321
     @driver.navigate.to(url)
   end
 
-  def test_action
+  def pull_and_insert_weights
+    
+    node_weights = ImportData.get_node_weight_labels
+    ap node_weights
+    # Do some other processing...
 
-    go_to("https://www.portfolio123.com/app/opener/PTF")
+    value = 5
 
-    x = 1
-    while x > 0
-      performance_button = $wait.until { @driver.find_element(:link_text, "Performance") }
-      performance_button.click
-
-      general_button = $wait.until { @driver.find_element(:link_text, "General") }
-      general_button.click
-
-      statistics_button = $wait.until { @driver.find_element(:link_text, "Statistics") }
-      statistics_button.click
-      
-      puts @driver.title
+    node_weights.each do |data|
+      input_element = @driver.find_element(:id, data[:input_id])
+      @driver.execute_script("return document.getElementById('#{data[:input_id]}').value = '';")
+      input_element.send_keys(value)
     end
-  end
 
-  def action_delegator(*args)
-    # To be used to delegate which action is to be taken. Base control flow for
-    # triggering other code. 
   end
 
   # # # # # # # # # # # # #  
