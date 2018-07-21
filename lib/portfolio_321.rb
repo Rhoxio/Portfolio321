@@ -46,16 +46,20 @@ class Portfolio321
   end
 
   def pull_and_insert_weights
-    
-    node_weights = ImportData.get_node_weight_labels
-    ap node_weights
-    # Do some other processing...
 
+    node_weights = ImportData.get_node_weights
+    ap node_weights
+
+    # Do some other processing...
     value = 5
 
-    node_weights.each do |data|
-      input_element = @driver.find_element(:id, data[:input_id])
-      @driver.execute_script("return document.getElementById('#{data[:input_id]}').value = '';")
+    node_weights.each do |node_data|
+      input_element = @driver.find_element(:id, node_data[:input_id])
+
+      # Setting the value to 0
+      @driver.execute_script("return document.getElementById('#{node_data[:input_id]}').value = '';")
+
+      # Setting the value in the corresponding input box.
       input_element.send_keys(value)
     end
 
