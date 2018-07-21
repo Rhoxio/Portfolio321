@@ -3,7 +3,7 @@ module ImportData
   # Need to set up data grabs here. Not worrying about closest paths or least
   # clicks, just getting functionality down.
 
-  def self.get_node_weight_labels
+  def self.get_node_weights
 
     data = []
 
@@ -22,10 +22,11 @@ module ImportData
     paired_elements = elements.each_slice(2).to_a
 
     paired_elements.each do |td|
-      data << { name: td[0].text, input_id: td[1].find_elements(:xpath, "./input")[0].attribute('id')}
+      input = td[1].find_elements(:xpath, "./input")[0]
+      data << { name: td[0].text, input_id: input.attribute('id'), input_value: input.attribute('value')}
     end
 
-    # Removing the header (index 0) of the table as it isn't pure data.
+    # Removing the header (index 0) of the table as it isn't data we need to act upon.
     data.shift
 
     return data
