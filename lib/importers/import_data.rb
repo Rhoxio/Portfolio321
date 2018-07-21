@@ -18,12 +18,12 @@ module ImportData
       element if element.displayed?
     }    
     
-    elements = table.find_elements(:xpath, "./tbody/tr/td")
-    paired_elements = elements.each_slice(2).to_a
+    td = table.find_elements(:xpath, "./tbody/tr/td")
+    paired_td = td.each_slice(2).to_a
 
-    paired_elements.each do |td|
+    paired_td.each do |td|
       input = td[1].find_elements(:xpath, "./input")[0]
-      data << { name: td[0].text, input_id: input.attribute('id'), input_value: input.attribute('value')}
+      data << { name: td[0].text, input_id: input.attribute('id'), input_value: input.attribute('value') }
     end
 
     # Removing the header (index 0) of the table as it isn't data we need to act upon.
