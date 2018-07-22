@@ -73,7 +73,7 @@ class Portfolio321
   # can access it. Keeps the public interface clean.
 
   def default_login_info
-    {username: ENV["USERNAME"], password: ENV["PASSWORD"]}
+    {username: ENV["LOGIN_USERNAME"], password: ENV["LOGIN_PASSWORD"]}
   end
 
   def default_driver
