@@ -15,7 +15,6 @@ module ImportData
 
     table = $wait.until {
       element = $driver.find_element(:id, "weights-cont-table")
-      element if element.displayed?
     }    
     
     td = table.find_elements(:xpath, "./tbody/tr/td")

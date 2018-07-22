@@ -17,11 +17,8 @@ class Portfolio321
     @driver = args[:driver] ||= default_driver
     @login_info = args[:login_info] ||= default_login_info
 
-    @exporter = ExportData.new()
-    @xlsx_parser = XLSXParser.new()
-
     if args[:log_in]
-      log_in  
+      log_in
     end
 
   end
