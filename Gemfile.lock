@@ -25,6 +25,9 @@ GEM
     minitest (5.11.3)
     nokogiri (1.8.4)
       mini_portile2 (~> 2.3.0)
+    roo (2.7.1)
+      nokogiri (~> 1)
+      rubyzip (~> 1.1, < 2.0.0)
     rspec (3.7.0)
       rspec-core (~> 3.7.0)
       rspec-expectations (~> 3.7.0)
@@ -51,6 +54,11 @@ GEM
       i18n
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
+    write_xlsx (0.85.5)
+      rubyzip (>= 1.0.0)
+      zip-zip
+    zip-zip (0.3)
+      rubyzip (>= 1.0.0)
 
 PLATFORMS
   ruby
@@ -60,10 +68,12 @@ DEPENDENCIES
   chromedriver-helper
   dotenv
   nokogiri
+  roo
   rspec
   rubyXL
   selenium-webdriver
   time_diff
+  write_xlsx
 
 BUNDLED WITH
    1.16.1
