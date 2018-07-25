@@ -15,4 +15,4 @@ $wait = Selenium::WebDriver::Wait.new(:timeout => 15)
 
 app = Portfolio321.new({ log_in: true })
 p app.driver
-app.pull_and_insert_weights
+app.switch_universes

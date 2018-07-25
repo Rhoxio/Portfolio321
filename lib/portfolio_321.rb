@@ -45,7 +45,7 @@ class Portfolio321
   def pull_and_insert_weights
 
     node_weights = ImportData.get_node_weights
-    ap node_weights
+    # ap node_weights
 
     # Do some other processing...
     value = 5
@@ -59,6 +59,13 @@ class Portfolio321
       # Setting the value in the corresponding input box.
       input_element.send_keys(value)
     end
+
+  end
+
+  def switch_universes
+
+    universe = ImportData.get_universe_options.sample
+    # ap universe
 
   end
 
