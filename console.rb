@@ -10,9 +10,6 @@ require 'pry'
 # Double splat is all directories, single splat is all files.
 Dir["./lib/**/*.rb"].each {|file| require file }
 
-# Global variables for the driver and wait to keep things consistent.
-$driver = Selenium::WebDriver.for :chrome
-$wait = Selenium::WebDriver::Wait.new(:timeout => 15)
-
-app = Portfolio321.new({ log_in: true })
-app.switch_universes
+# This opens up an IRB prompt that run on the same line as 'pry' is evoked. 
+# You can also use this to debug code within the project.
+pry
