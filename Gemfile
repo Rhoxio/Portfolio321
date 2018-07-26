@@ -5,6 +5,7 @@ gem 'chromedriver-helper'
 gem 'awesome_print'
 gem 'nokogiri'
 gem 'time_diff'
+gem 'pry'
 
 gem 'dotenv'
 gem 'rubyXL'

@@ -33,22 +33,22 @@ module ImportData
     settings_tab = $wait.until { $driver.find_element(:id, "scrtab_7") }
     settings_tab.click
 
-    universe_options = $wait.until { $driver.find_element(:id, "universeUid") }
-    options = universe_options.find_elements(:xpath, "./optgroup")[-1].find_elements(:xpath, "./option")
+    universes_form = $wait.until { $driver.find_element(:id, "universeUid") }
+    options = universes_form.find_elements(:xpath, "./optgroup")[-1].find_elements(:xpath, "./option")
 
     universe_options = options.map do |option|
       { value: option.attribute("value"), text:  option.text }
     end
 
+    # Removing the last one because it is just the "add another" option.
     universe_options.pop
-    ap universe_options
+
     return universe_options
   end
 
-  def self.set_universe(universe_id)
-    # Assuming you are coming from the appropriate page...
-  end  
-
+  def self.get_run_results
+    # Need to extract the data based upon actual column names here. 
+  end
 
   # # # # # # # # # # # # #  
   # START OF PRIVATE METHODS
@@ -58,11 +58,11 @@ module ImportData
 
   # Hard coded for testing purposes. Will need an ID to run programmatically.
   def navigate_to_ranking_system(input = nil)
-    $driver.navigate.to("https://www.portfolio123.com/app/ranking-system/332295")
+    $driver.navigate.to("https://www.portfolio123.com/app/ranking-system/333429")
   end
 
   def self.navigate_to_settings_tab(input = nil)
-    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/212386")
+    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/212956")
   end  
 
 end

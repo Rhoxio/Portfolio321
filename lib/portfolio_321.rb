@@ -65,6 +65,8 @@ class Portfolio321
   def switch_universes
 
     universe = ImportData.get_universe_options.sample
+    ap universe[:value]
+    UniverseTraverser.set_universe(universe[:value])
     # ap universe
 
   end
