@@ -24,7 +24,7 @@ class Portfolio321
   end
 
   def log_in
-
+    # Go to P123 login page and, enter login values defined in .env file 
     go_to "https://www.portfolio123.com/login.jsp?url=%2F"
 
     login_box = @driver.find_element(:id, "LoginUsername")
@@ -33,7 +33,7 @@ class Portfolio321
     pw_box = @driver.find_element(:id, "LoginPassword")
     pw_box.send_keys(@login_info[:password])
 
-    signin_btn = @driver.find_element(:id, "Login")
+    signin_btn = @driver.find_element(:id, "Login")   #hit button to log in
     signin_btn.click()
     
   end
@@ -46,6 +46,25 @@ class Portfolio321
 
     node_weights = ImportData.get_node_weights
     ap node_weights
+    # example node_weights value: {:name=>"LTGrthMean", :input_id=>"node-weight-1", :input_value=>"0"}
+
+    # Convert node_weights to an array of integers
+    clm = []
+    clm = node_weights.map { |x| x[:input_value].to_i} 
+  
+
+    path = "C:/Users/Scott/GitHub Jobs/Test Excel Write.xlsx"     # Any value to using global(s) for paths[run config, run data, etc]
+    #workbook = XLSXParser.parse("C:/Users/Scott/GitHub Jobs/Test Excel Write.xlsx")
+    workbook = XLSXParser.open(path)     # Test here for valid workbook and continue accordingly, errors out if workbook already open
+    worksheet = workbook["Nodes"]
+
+    XLSXParser.fill_clm_values(0, 3, worksheet, clm)
+    #XLSXParser.write_workbook(workbook, "C:/Users/Scott/GitHub Jobs/Test Excel Write.xlsx")
+    XLSXParser.write_workbook(workbook, path)
+
+     clm = node_weights.map { |x| x[:name]} 
+     XLSXParser.fill_clm_values(0, 0, worksheet, clm)
+     XLSXParser.write(workbook, path)
 
     # Do some other processing...
     value = 5

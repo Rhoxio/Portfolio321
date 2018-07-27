@@ -27,6 +27,7 @@ module ImportData
 
     # Removing the header (index 0) of the table as it isn't data we need to act upon.
     data.shift
+    #puts data
 
     return data
     

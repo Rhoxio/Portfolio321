@@ -16,3 +16,6 @@ $wait = Selenium::WebDriver::Wait.new(:timeout => 15)
 app = Portfolio321.new({ log_in: true })
 p app.driver
 app.pull_and_insert_weights
+
+   # path = %q["C:\Users\Scott\GitHub Jobs\Test Excel Write.xlsx"].gsub!('\\','/')     # Any value to using global(s) for paths[run config, run data, etc]
+   # puts path    
