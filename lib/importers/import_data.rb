@@ -3,6 +3,8 @@ module ImportData
   # Need to set up data grabs here. Not worrying about closest paths or least
   # clicks, just getting functionality down.
   def self.get_node_weights
+    navigate_to_ranking_system
+
 
     weights_tab = $wait.until { $driver.find_element(:id, "rank-syst-func-tab3") }
     weights_tab.click
@@ -46,8 +48,16 @@ module ImportData
     return universe_options
   end
 
-  def self.get_run_results
-    # Need to extract the data based upon actual column names here. 
+  def self.backtest_results
+     
+    tab = $wait.until { $driver.find_element(:id, "scrtab_3") }
+    tab.click
+    
+    $wait.until { $driver.find_element(:id, "clearResults") }.click
+
+    backtest_button = $wait.until { $driver.find_element(:id, "runBacktest") }
+    backtest_button.click
+
   end
 
   # # # # # # # # # # # # #  
@@ -57,12 +67,12 @@ module ImportData
   private
 
   # Hard coded for testing purposes. Will need an ID to run programmatically.
-  def navigate_to_ranking_system(input = nil)
+  def self.navigate_to_ranking_system(input = nil)
     $driver.navigate.to("https://www.portfolio123.com/app/ranking-system/333429")
   end
 
   def self.navigate_to_settings_tab(input = nil)
-    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/212956")
+    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/212957")
   end  
 
 end

@@ -48,7 +48,7 @@ class Portfolio321
     # ap node_weights
 
     # Do some other processing...
-    value = 5
+    value = 0
 
     node_weights.each do |node_data|
       input_element = @driver.find_element(:id, node_data[:input_id])
@@ -60,15 +60,28 @@ class Portfolio321
       input_element.send_keys(value)
     end
 
+    # Jump to top of page so the browser has the button in it's viewport... 
+    @driver.execute_script("scroll(250, 0)")
+    
+    update_button = $wait.until { @driver.find_elements(:tag_name, "input").find { |i| i.attribute("value") == "Update" } }
+    update_button.click
+    
   end
 
-  def switch_universes
+  def switch_universe(universe_id = "")
 
     universe = ImportData.get_universe_options.sample
-    ap universe[:value]
     UniverseTraverser.set_universe(universe[:value])
     ap universe
 
+  end
+
+  def retrieve_backtest_restults
+    ImportData.backtest_results
+  end
+
+  def sate_navigation_alert
+    @driver.browser.switch_to.alert.accept rescue Selenium::WebDriver::Error::NoAlertOpenError
   end
 
   # # # # # # # # # # # # #  
