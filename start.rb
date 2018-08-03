@@ -15,4 +15,12 @@ $driver = Selenium::WebDriver.for :chrome
 $wait = Selenium::WebDriver::Wait.new(:timeout => 15)
 
 app = Portfolio321.new({ log_in: true })
-app.switch_universes
+# app.switch_universes
+app.pull_and_insert_weights
+
+# When you navigate away from some pages, it will throw a navigation alert at you.
+# This catches and accepts the navigation. 
+app.sate_navigation_alert
+
+app.switch_universe
+app.retrieve_backtest_results
