@@ -33,6 +33,8 @@ class Portfolio321
     pw_box = @driver.find_element(:id, "LoginPassword")
     pw_box.send_keys(@login_info[:password])
 
+    sleep 5
+
     signin_btn = @driver.find_element(:id, "Login")
     signin_btn.click()
     
@@ -67,7 +69,7 @@ class Portfolio321
     universe = ImportData.get_universe_options.sample
     ap universe[:value]
     UniverseTraverser.set_universe(universe[:value])
-    ap universe
+    # ap universe
 
   end
 
