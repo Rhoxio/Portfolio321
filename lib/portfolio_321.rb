@@ -72,11 +72,11 @@ class Portfolio321
 
     universe = ImportData.get_universe_options.sample
     UniverseTraverser.set_universe(universe[:value])
-    # ap universe
+    ap universe
 
   end
 
-  def retrieve_backtest_restults
+  def retrieve_backtest_results
     ImportData.backtest_results
   end
 

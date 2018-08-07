@@ -1,0 +1,233 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"char",
+				"char_array"
+			],
+			[
+				"single",
+				"single_quote_string"
+			],
+			[
+				"experi",
+				"experiment_name"
+			],
+			[
+				"ex",
+				"experiment_name"
+			],
+			[
+				"wk",
+				"wksht"
+			],
+			[
+				"input",
+				"input_value"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 157.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/lib/experiment/experiment.rb",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/console.rb",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/start.rb",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/lib/importers/import_data.rb",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/lib/portfolio_321.rb",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/.env",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/lib/parsers/xlsx_parser.rb",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/lib/traversers/universe_traverser.rb",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/lib/exporters/export_data.rb",
+		"/C/Users/Scott/AppData/Local/Sublime Text 3/Index/000003.log",
+		"/C/Users/Scott/AppData/Roaming/Sublime Text 3/Local/Session.sublime_session",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/.git/index",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/.gitignore",
+		"/C/Users/Scott/GitHub_Jobs/Portfolio321/.rspec",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/lib/experiment/experiment.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/lib/importers/import_data.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/lib/portfolio_321.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/.env",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/Gemfile",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/console.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/start.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321bak/lib/portfolio_321.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/lib/XLSXUtils/xlsx_utils.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321bak/lib/parsers/xlsx_parser.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/lib/XLSXUtils/export_data - Copy.rb",
+		"/C/Users/Scott/GitHub Jobs/Save Stuff/portfolio_321 Scott.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/lib/parsers/xlsx_parser.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321bak/lib/traversers/universe_traverser.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321bak/lib/importers/import_data.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321bak/lib/exporters/export_data.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321bak/spec/portfolio_321_spec.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/lib/traversers/universe_traverser.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/lib/exporters/export_data.rb",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/lib/traversers/.env",
+		"/C/Users/Scott/GitHub Jobs/Portfolio321/lib/portfolio_321 Scott.rb"
+	],
+	"find":
+	{
+		"height": 27.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"Hub Jobs",
+			"set_universe",
+			"end",
+			"UniverseTraverser",
+			"to_",
+			":to",
+			"go_to",
+			"\\"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"Hub_Jobs",
+			"/"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "portfolio_321.sublime-project",
+	"replace":
+	{
+		"height": 50.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 165.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
