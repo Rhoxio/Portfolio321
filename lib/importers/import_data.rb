@@ -68,11 +68,13 @@ module ImportData
 
   # Hard coded for testing purposes. Will need an ID to run programmatically.
   def self.navigate_to_ranking_system(input = nil)
-    $driver.navigate.to("https://www.portfolio123.com/app/ranking-system/333429")
+    $driver.navigate.to("https://www.portfolio123.com/app/ranking-system/333916")  # make this an ENV variable?
+#    $driver.navigate.to(ENV["RANKING_SYSTEM_URL"])  # make this an ENV variable?
   end
 
   def self.navigate_to_settings_tab(input = nil)
-    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/212957")
+    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/213685")  # make this an ENV variable?
+#    $driver.navigate.to(ENV["SCREENS_SETTINGS_URL"])  # make this an ENV variable?
   end  
 
 end
