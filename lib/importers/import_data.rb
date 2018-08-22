@@ -5,7 +5,6 @@ module ImportData
   def self.get_node_weights
     navigate_to_ranking_system
 
-
     weights_tab = $wait.until { $driver.find_element(:id, "rank-syst-func-tab3") }
     weights_tab.click
 
@@ -31,8 +30,8 @@ module ImportData
 
   def self.get_universe_options
     
-    navigate_to_settings_tab
-    settings_tab = $wait.until { $driver.find_element(:id, "scrtab_7") }
+    navigate_to_settings_tab    # navigate to P123 Screens page where the Settings tab is located
+    settings_tab = $wait.until { $driver.find_element(:id, "scrtab_7") }  # now go to tab
     settings_tab.click
 
     universes_form = $wait.until { $driver.find_element(:id, "universeUid") }
@@ -59,7 +58,6 @@ module ImportData
 
     sleep 300
     
-
     backtest_button = $wait.until { $driver.find_element(:id, "runBacktest") }
     backtest_button.click
 
@@ -108,6 +106,10 @@ module ImportData
 
   def self.navigate_to_settings_tab(input = nil)
     $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/213685")
+  end
+
+  def self.navigate_to_settings_tab(input = nil)
+    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/213685")  # make this an ENV variable?
   end  
 
 end
