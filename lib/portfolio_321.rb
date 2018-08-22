@@ -76,7 +76,7 @@ class Portfolio321
 
   end
 
-  def retrieve_backtest_restults
+  def retrieve_backtest_results
     ImportData.backtest_results
   end
 

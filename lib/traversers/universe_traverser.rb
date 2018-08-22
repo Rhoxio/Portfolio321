@@ -13,8 +13,8 @@ module UniverseTraverser
       o.attribute('value') == universe_id
     end
 
-    ap selected_option
-    ap selected_option.click
+    selected_option
+    selected_option.click
 
     run_button = $wait.until { $driver.find_element(:id, "runScreen") }
     run_button.click
