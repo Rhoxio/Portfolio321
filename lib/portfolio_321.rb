@@ -156,7 +156,6 @@ class Portfolio321
 
     selected_option.click
   end
-
   def go_to_node_weights_tab
   # navigate to P123 rank systmens page then to the weights tab
 

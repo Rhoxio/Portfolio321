@@ -13,3 +13,4 @@ gem 'rubyXL'
 # gem 'write_xlsx'
 
 gem 'rspec'
+gem 'open-uri'
