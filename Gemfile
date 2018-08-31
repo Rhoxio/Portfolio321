@@ -13,3 +13,4 @@ gem 'rubyXL'
  gem 'robust_excel_ole'
 
 gem 'rspec'
+gem 'open-uri'

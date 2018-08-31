@@ -48,13 +48,37 @@ module ImportData
   end
 
   def self.backtest_results
+
+    results = []
      
     tab = $wait.until { $driver.find_element(:id, "scrtab_3") }
     tab.click
     
-#    $wait.until { $driver.find_element(:id, "clearResults") }.click
+    $wait.until { $driver.find_element(:id, "clearResults") }
+
+    sleep 300
+    
     backtest_button = $wait.until { $driver.find_element(:id, "runBacktest") }
     backtest_button.click
+
+    # ap check_for_ratelimit    
+
+    results_table = $wait.until { $driver.find_element(:id, "results-table") }
+    base_keys = results_table.find_elements(:xpath, "./table/thead/tr")[1].find_elements(:xpath, "./th").each_with_index.map {|el, i| { el.text.gsub("\n", "") => nil } }
+
+    base_keys.shift
+
+    results_table.find_elements(:xpath, "./table/tbody/tr").each do |tr|
+      if tr["class"].split(" ").include?("rowAlt1")
+        td = tr.find_elements(:xpath, "./td").each_with_index.map {|t, i| t.text }
+        td.shift
+        ap td
+      end
+    end
+    
+    ap base_keys
+
+    sleep 20000
 
   end
 
@@ -64,15 +88,28 @@ module ImportData
 
   private
 
+  # def self.check_for_ratelimit
+  #   begin
+  #     ap wait = Selenium::WebDriver::Wait.new(:timeout => 15)
+
+  #     ap error_container = wait.until { $driver.find_element(:id, "scr-error") } 
+  #     ap minutes_left = error_container.text
+  #   rescue
+  #     false
+  #   end
+  # end  
+
   # Hard coded for testing purposes. Will need an ID to run programmatically.
   def self.navigate_to_ranking_system(input = nil)
-#    $driver.navigate.to("https://www.portfolio123.com/app/ranking-system/333916")  # make this an ENV variable?
-    $driver.navigate.to(ENV["RANKING_SYSTEM_URL"])  # make this an ENV variable?
+    $driver.navigate.to("https://www.portfolio123.com/app/ranking-system/333916")
   end
 
   def self.navigate_to_settings_tab(input = nil)
-#    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/213685")  # make this an ENV variable?
-    $driver.navigate.to(ENV["SCREENS_SETTINGS_URL"])  # make this an ENV variable?
+    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/213685")
+  end
+
+  def self.navigate_to_settings_tab(input = nil)
+    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/213685")  # make this an ENV variable?
   end  
 
 end
