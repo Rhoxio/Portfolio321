@@ -10,6 +10,6 @@ gem 'pry'
 gem 'dotenv'
 gem 'rubyXL'
 # gem 'roo'
-# gem 'write_xlsx'
+ gem 'robust_excel_ole'
 
 gem 'rspec'

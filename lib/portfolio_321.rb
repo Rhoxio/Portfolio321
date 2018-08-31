@@ -28,6 +28,7 @@ class Portfolio321
     # default_driver is the failover method that will always use the default driver.
     # @ is an instance variable and can be evoked only in this instance of this class.
 
+    open_web_driver()
     @driver = args[:driver] ||= default_driver
     @login_info = args[:login_info] ||= default_login_info
 
@@ -75,10 +76,10 @@ class Portfolio321
   def pull_node_weights
   # get node information from P123     
     
-    go_to_node_weights_tab
+    goto_node_weights_tab
 
     table = $wait.until {
-      element = $driver.find_element(:id, "weights-cont-table")
+      element = @driver.find_element(:id, "weights-cont-table")
     }    
     
     td = table.find_elements(:xpath, "./tbody/tr/td")
@@ -99,8 +100,7 @@ class Portfolio321
   def push_node_weights(node_weights)  # node_weights is an array of :value
   # send the Todo node weights for this run to P123
 
-    go_to_node_weights_tab
-
+    goto_node_weights_tab
     # value must NOT be set to 0 or all weights are filled in with an extra 0, or 10x values
     value = nil   
     idx = 0
@@ -128,9 +128,8 @@ class Portfolio321
   def pull_universe_options
   # get the available custom universes from P123
 
-    go_to_screens_settings_tab
-
-    universes_form = $wait.until { $driver.find_element(:id, "universeUid") }
+    goto_screens_settings_tab()
+    universes_form = $wait.until { @driver.find_element(:id, "universeUid") }
     options = universes_form.find_elements(:xpath, "./optgroup")[-1].find_elements(:xpath, "./option")
 
     universe_options = options.map do |option|
@@ -145,63 +144,88 @@ class Portfolio321
   def push_universe(universe_name)
   # send the Todo universe for this run to P123
 
-    go_to_screens_settings_tab
+    goto_screens_settings_tab()
 
-    universe_options = $wait.until { $driver.find_element(:id, "universeUid") }
+    universe_options = $wait.until { @driver.find_element(:id, "universeUid") }
     options = universe_options.find_elements(:xpath, "./optgroup")[-1].find_elements(:xpath, "./option")
 
     selected_option = options.find do |o|
       o.attribute('text') == universe_name
     end
-
     selected_option.click
   end
 
-  def go_to_node_weights_tab
+  def goto_node_weights_tab
   # navigate to P123 rank systmens page then to the weights tab
 
     go_to(@p123_rank_system_url)
 
-    weights_tab = $wait.until { $driver.find_element(:id, "rank-syst-func-tab3") }
+    weights_tab = $wait.until { @driver.find_element(:id, "rank-syst-func-tab3") }
     weights_tab.click    
   end
 
-  def go_to_screens_settings_tab
+  def goto_screens_settings_tab
   ## navigate to P123 Screens page then to Settings tab
 
     go_to(@p123_screens_url)
-    settings_tab = $wait.until { $driver.find_element(:id, "scrtab_7") }
+    sate_navigation_alert() 
+
+    settings_tab = $wait.until { @driver.find_element(:id, "scrtab_7") }
     settings_tab.click
   end
 
-  def go_to_run_backtest_tab
+  def goto_run_backtest_tab
   # navigate to P123 Screens page then to Backtest tab
 
     go_to(@p123_screens_url)     # apparently Selenium doesn't like going to the page it's already on
-    tab = $wait.until { $driver.find_element(:id, "scrtab_3") }
+    tab = $wait.until { @driver.find_element(:id, "scrtab_3") }
     tab.click
   end
 
-  def execute_backtest
+  def execute_backtest(results_report)
   # run the backtest and download the results: assumes already on the Screens menu but not Backtest tab
 
-    go_to_run_backtest_tab
+    goto_run_backtest_tab()
 
     # all :id's - clearResults, runScreen, rerunScreen, runBacktest, reRunBacktest, runRBacktest, rerunRBacktest
-    run_button = $wait.until { $driver.find_element(:id, "runBacktest") }
+    run_button = $wait.until { @driver.find_element(:id, "runBacktest") }
     run_button.click
 
-    # need to select a wait mechanism to hold off at this point while the run is executing
-    # 'sleep' will work but finding a "run completed" test condition to work with it is preferable to
-    # waiting an arbitrarily long time to assure any run will have completed under any conditions
-    # Also need: 
-    # => button id's (missing/hidden) or other means to trigger both chart and table results file downloads
-    # => some means to respond to save/cancel download choices so as to continue to next run - these are not website actions that Selenium can drive
-    # => the save results process depends on the results capture process
+    # wait up to 15s for run completion to post results table: Selenium::..implicit_wait(secs) if need > 15s wait 
+    dl_button = $wait.until { @driver.find_element(:id, "results-table") }
+
+    # select which button to click for downloading the specified chart or table run results
+    # both buttons remain 'displayed' and 'enabled' even when outside of the page's viewport
+    if results_report == "chart" then
+      dl_button = $wait.until { @driver.find_element(:xpath, "//*[@id='scr-result']/div[2]/a") }   # note '' inside of ""
+    else
+      dl_button = $wait.until { @driver.find_element(:xpath, "//*[@id='results-table']/table/thead/tr[1]/th/div/div/a") }
+    end
+    dl_button.click
+
+    # return until notified that the results file has been saved
+  end
+
+  def terminate_backtest ()
+  # hit 'Clear Backtest Results' button to terminate download and ready Backtest page for next run
+
+    button = $wait.until { @driver.find_element(:id, "clearResults") }
+    button.click
+
+    # leave page to end download process and handle dialog box caused by this particular page change
+    go_to(@p123_rank_system_url)
+    sate_navigation_alert() 
+    return
+  end
+
+  def end_experiment
+    @driver.quit
   end
 
   def sate_navigation_alert
-    @driver.browser.switch_to.alert.accept rescue Selenium::WebDriver::Error::NoAlertOpenError
+  # accept (hit 'Leave' button) on the Leave/Cancel dialog box warning of possible unsaved changes
+
+    @driver.switch_to.alert.accept rescue Selenium::WebDriver::Error::NoAlertOpenError
   end
 
 
@@ -218,7 +242,16 @@ class Portfolio321
     {username: ENV["LOGIN_USERNAME"], password: ENV["LOGIN_PASSWORD"]}
   end
 
+  def open_web_driver
+  # self evident
+
+    $driver = Selenium::WebDriver.for :chrome
+    $wait = Selenium::WebDriver::Wait.new(:timeout => 15)
+  end
+
   def go_to(url)
+  
+#    sate_navigation_alert()
     # if not already on a page, go there: @driver urps trying to go to the current page
     if url != @driver.current_url then @driver.navigate.to(url) end
   end
@@ -227,41 +260,4 @@ class Portfolio321
     $driver
   end
 
-=begin  legacy code saved for reference
-
-  # Hard coded for testing purposes. Will need an ID to run programmatically.
-  def navigate_to_ranking_system(input = nil)
-#    $driver.navigate.to("https://www.portfolio123.com/app/ranking-system/333916")  # make this an ENV variable?
-    $driver.navigate.to(ENV["RANKING_SYSTEM_URL"])  # make this an ENV variable?
-  end
-
-  def navigate_to_settings_tab(input = nil)
-#    $driver.navigate.to("https://www.portfolio123.com/app/screen/summary/213685")  # make this an ENV variable?
-    $driver.navigate.to(ENV["SCREENS_SETTINGS_URL"])  # make this an ENV variable?
-  end  
-  def pull_and_insert_weights
-
-    @node_weights = pull_node_weights
-
-    # Do some other processing...
-    value = 0
-
-    @node_weights.each do |node_data|
-      input_element = @driver.find_element(:id, node_data[:input_id])
-
-      # Setting the value to 0
-      @driver.execute_script("return document.getElementById('#{node_data[:input_id]}').value = '';")
-
-      # Setting the value in the corresponding input box.
-      input_element.send_keys(value)
-    end
-
-    # Jump to top of page so the browser has the button in it's viewport... 
-    @driver.execute_script("scroll(250, 0)")
-    
-    update_button = $wait.until { @driver.find_elements(:tag_name, "input").find { |i| i.attribute("value") == "Update" } }
-    update_button.click
-    
-  end
-=end
 end

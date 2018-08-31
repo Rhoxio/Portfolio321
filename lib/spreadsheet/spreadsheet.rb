@@ -1,13 +1,15 @@
 class Spreadsheet
-################################################################################################
+#################################################################################################
 # this class manages all spreadsheet activities for an experiment, a series of runs or backtests:
 #   - getting experiment Setup values entered by user
-#   - creating experiment Todo file of node weight and unverse selections for each run
-#   - creating experiment Analysis file from template containing results analysis algorithms
-#   - managing all state variable that guide/track progress through experiment's runs
-#   - gathering results for each run and logging them into files 
-#   - transferring key results to Analysis for collation and analysis processing
-################################################################################################
+#   - creating experiment Todo file listing node weight and unverse selections for each run
+#   - creating experiment Analysis file from formula template file containing analysis algorithms
+#   - managing all state variables that guide/track progress through the experiment's runs
+#   - gathering results for each run and logging them files 
+#   - transferring key results to Analysis for analysis processing 
+# the term 'filepath' is used here to mean a path that includes a whole or base filename
+# a 'base' filename is something like 'Run - ' that gets a designator appended (e.g., run # '07')
+#################################################################################################
 
   def initialize()
 
@@ -15,140 +17,128 @@ class Spreadsheet
   # file and directory paths, P123 URLs, and run repeat values.  Generating data file names/path relies
   # on the spreadsheet access functions formatting pc paths such that '\'s are replaced by '\\'s.
 
-    # open the experiment setup spreadsheet
-    setup = experiment_setup
-    setup_wkbk = RubyXL::Parser.parse(setup[:path])
-    @setup_wksht = setup_wkbk[0]
-    # run_done tracks the current run no. of runs_todo and is used to create filenames for run results
-    # written to Experiment Setup at each run completion including a nil value at experiment completion 
+    # create a specific Excel instance for experiment to avoid affecting other user's open spreadsheets
+    # set all experiment files to be visible so it's easy to close them manually if program (errors out)
+    # default to calculation manual mode in all cases even though this is only an Analysis issue
+    @p123_excel = RobustExcelOle::Excel.create(:reuse => false)
+    @p123_excel.for_this_instance(:visible => true, :calculation => :manual)
+
+    # open the experiment setup workbook and spreadsheet
+    setup = experiment_setup()          # setup <= Setup filepath .env declaration
+    @setup_wkbk = RobustExcelOle::Workbook.open(setup[:path], :excel => @p123_excel)
+    @setup_wksht = @setup_wkbk.first_sheet
+
+    @setup_cells = setup_file_cells()   # @setup_cells <= array parameter cell locatons in Setup 
 
     # current_run is initialized to 0 or last run completed, it's incremented when next run is started
     # so it becomes either run 1 or the run# after the last previously completed run (the resume run#)
-    @setup_cells = setup_file_cel1s
-    @current_run = @setup_cells[:current_run].value ||= 0   # contains current run# to start run over if abend 
+    @current_run = @setup_cells[:current_run].value ||= 0   # contains current run# to start run over if abend
 
-    # read in the number of P123 runs to be performed
-    @runs_todo = @setup_cells[:runs_todo].value 
+    # read in the number of P123 runs to be performed: use it to set the col index for universe names
+    @runs_todo = @setup_cells[:runs_todo].value
+    @universe_todo_col = @runs_todo + 2 
 
-    # read in the path to store experiment data and convert '\\' to '/'
+    # read in the path to store experiment data and convert any '\\' to '/'
     @experiment_folder = convert_pc_path(@setup_cells[:experiment_folder].value)
+#    @experiment_folder = convert_pc_path(@setup_cells[:experiment_folder].value)
 
-    # extract the experiment name from the end of of the path
-  #  idx = 0
-  # chrs = @experiment_folder.chars 
-  #  chrs.each_index { |x| if chrs[x] == '/' then idx = x end }
-  #  idx += 1
-  #  aname = chrs[idx..-1]
-  #  @experiment_name = aname.join
-    @experiment_name = @experiment_folder.split('/').last
+    # extract default experiment name from the end of the experiment data pat
+    @experiment_name = @experiment_folder.split('/').last 
 
     # build the Results and Todo file paths
     @todo_filepath = @experiment_folder + '/1-Todo_' + @experiment_name + '.xlsx'
-    @todo_wkbk = if experiment_file_exists?(@todo_filepath) 
-      then RubyXL::Parser.parse(@todo_filepath)
-      else RubyXL::Workbook.new
-      end
-    @todo_wksht = @todo_wkbk[0]
 
-    # prepare Analysis filepath   
+    # if resuming then open existing Todo here else create new Todo in setup_todo()
+    if experiment_file_exists?(@todo_filepath) 
+      then 
+        @todo_wkbk = RobustExcelOle::Workbook.open(@todo_filepath, :excel => @p123_excel)
+        @todo_wksht = @todo_wkbk.first_sheet
+      end
+
+    # assemble the Analysis filepath for this experiment
     @analysis_filepath = @experiment_folder + '/0-Analysis_' + @experiment_name + '.xlsx'
 
-    # open Analysis Template to hold Analysis data later saved to Analysis file
-    @analysis_template = convert_pc_path(@setup_cells[:analysis_template].value)
-    @analysis_wkbk = if experiment_file_exists?(@analysis_filepath) 
-      then RubyXL::Parser.parse(@analysis_filepath)
-      else RubyXL::Workbook.new(@analysis_template)
+    # a pre-existing Analysis file indicates experiment is being resumed, even if still at 1st run
+    if experiment_file_exists?(@analysis_filepath) 
+      then  
+        # resuming experiment: open existing Analysis with data from previously completed runs 
+        @analysis_wkbk = RobustExcelOle::Workbook.open(@analysis_filepath, :excel => @p123_excel)
+      else  
+        # starting new experiment: open Template file containing formulae and save as Analysis
+        analysis_template_path = convert_pc_path(@setup_cells[:analysis_template].value) 
+        @analysis_wkbk = RobustExcelOle::Workbook.open(analysis_template_path, :excel => @p123_excel)
+        @analysis_wkbk.save_as(@analysis_filepath)
       end
-    @analysis_wksht = @analysis_wkbk[0]
+    @analysis_wksht = @analysis_wkbk.first_sheet
 
-    # create the base run result file name with path to the experiment's data folder
-    # path will be updated as each run completes: results_filename-01, -02..runs_todo
+    # create the base run results filepath inside the experiment's data folder
+    # filepath is updated as each run completes: results_filename-01, -02..runs_todo
     @results_filename = @setup_cells[:results_filename].value
     if @results_filename == "experiment" then @results_filename = @experiment_name end
     @base_results_filepath = @experiment_folder + '/' + @results_filename + '-'
    	
     # read in which type of P123 run results report to download
     @results_report = @setup_cells[:results_report].value
+    if @results_report != "table" then @results_report = "chart" end 
 
-    # this is a scratchpad workbook that needn't be checked for already existing
-    @results_wkbk = RubyXL::Workbook.new
-    @results_wksht = @results_wkbk[0]
+    # create the search filepath for picking up any '.xls' files in the Users */Temp directory
+    @pickup_filepath = convert_pc_path(@setup_cells[:nab_file_path].value) + "/*.xls"
+  end   # of initialize()
 
-    # read in P123 URLs needed to access rank weight access, universe selection
-    # may include backtest results URL?
-#    @p123_rank_url = @setup_cells[:P123_rank_URL].value
-#    @p123_screens_url = @setup_cells[:P123_screens_URL].value
-
-
-  	# ****  FAKE A RUN to test methods  ****
-#    log_run_done()
-#    write_run_results(mock_test_table)
-#    results = nab_results_file(@results_report)
-#    write_run_results(results)
-  end
+            ####################################### API Methods #########################################
+            #############################################################################################
 
   def get_p123_urls()
-  # write results file and add performance results to Analysis file
+  # experiment API method: return the p123 rank system and screen Urls listed in Setup
 
-   # Setup always contains last run completed because run# increments at run start
-   p123_urls = Array.new
-   p123_urls[0] = @setup_cells[:P123_rank_URL].value 
-   p123_urls[1] = @setup_cells[:P123_screens_URL].value
-   return p123_urls
+    # Setup always contains last run completed because run# increments at run start
+    p123_urls = Array.new
+    p123_urls[0] = @setup_cells[:P123_rank_URL].value 
+    p123_urls[1] = @setup_cells[:P123_screens_URL].value
+    return p123_urls
   end
 
-  def nab_results_file(from="chart")	
-  # nabs a .csv run results file in mid-download as Open/Save dialog box waits for action choice
-  
-    # create the search filepath for any '.xls.part' files in the Users */Temp directory
-    file_path = convert_pc_path(@setup_cells[:nab_filename].value) + "/*.xls.part"
-
-     # get a list of files in directory with suitable extension
-    rezults = [""]
-    cnt = 0
-    shazam = Dir.glob(file_path)
-	   # for now assume only one candidate file in directory - consider failsafes later
-    File.open(shazam[0]).each { |record| rezults[cnt] = record; cnt+=1 }
-
-    # rezults[] is now an array of tab delimited values with a "\n" last character
-    # remove "\n" and split string at "\t"
-    rezults.each_index { |num| rezults[num] = rezults[num].gsub("\n", "") }
-    rezults.each_index { |num| rezults[num] = rezults[num].split("\t") }
-
-    # convert all results except date to numbers - date in 1st column of chart download, 2nd column of table
-    skip = if from != "chart"  then 1 else 0 end
-    rezults.each_index { |line| rezults[line].each_index { |cnt|  
-      if line > 0 then
-        if cnt != skip then rezults[line][cnt] = rezults[line][cnt].to_f end  
-      end
-    }
-   }
-  return (rezults)
+  def results_type()
+  # Experiment API method: reports if Setup specified a p123 chart or table results report
+    return @results_report
   end
 
-  def log_run_done()
-   # write results file and add performance results to Analysis file
+  def if_runs_todo()
+  # experiment API method: checks if all runs done; may find Setup errors with improper run conditions
+  # @runs_todo is incremented after this check so test is '>' not '>='
 
-   # Setup always contains last run completed because run# increments at run start
-   @setup_cells[:current_run] = @current_run
+    if @runs_todo > 0 && @runs_todo > @current_run then return true else return false end
   end
+ 
+  def incr_run_todo()
+  # experiment API method: update the run counter to upcoming run number
 
+    @current_run += 1
+    puts Time.now.strftime("%T %p - Run " + @current_run.to_s)
+  end
+ 
   def setup_todo(node_names, universe_names)
+  # experiment API method
   # set up the Todo file with rank node weights and universe selections for each run
 
-    # instantiate for later use whether resuming or not
-    if experiment_file_exists?(@todo_filepath) then return end            # *********
+    # create and load Todo if it doesn't already exists because experiment is now resuming
+    if experiment_file_exists?(@todo_filepath) then 
+      return 
+    else 
+      @todo_wkbk = RobustExcelOle::Workbook.open(@todo_filepath, :if_absent =>:create, :default => {:excel => @p123_excel})
+      @todo_wksht = @todo_wkbk.first_sheet
+    end
 
-    # put node names in column 0 of Todo for human reference
-    fill_clm_values(0, 0, @todo_wksht, node_names)
+    # put node names in column 1 of Todo for human reference
+    fill_Excel_clm_values(1, 1, @todo_wksht, node_names)
 
     # generate a column of randomly selected node weights in Todo for each run of the experiment
-    # each run's weights are in column[@curr_run] 
+    # each run's weights are in column[@current_run+1] because node names take up col 1
     node_weights = Array.new(node_names.length, 0)                # initialize weight set to 0
     cnt = 1
     while cnt <= @runs_todo
       node_weights = set_node_weights(node_weights.length)        # get a set of node weights
-      fill_clm_values(0, cnt, @todo_wksht, node_weights, true)		# load set into Todo
+      fill_Excel_clm_values(1, cnt+1, @todo_wksht, node_weights)  # load set into Todo
       cnt += 1
     end
   
@@ -156,37 +146,52 @@ class Spreadsheet
     # universes listed by name for human readability
     universe_list = Array.new(@runs_todo, "")
     universe_list.each_index { |idx| universe_list[idx] = universe_names.sample }
-#    cnt = 0
-#    while cnt < @runs_todo 
-#      universe_list[cnt] = universe_names.sample    
-#      cnt += 1
-#    end
-    fill_clm_values(0, @runs_todo + 2, @todo_wksht, universe_list, true)    # load set into Todo
+    fill_Excel_clm_values(1, @universe_todo_col, @todo_wksht, universe_list)    # load set into Todo
 
-    # write node weights and universes into Todo spreadsheet
-    @todo_wkbk.write(@todo_filepath)
+    # save Todo now it's loaded with node weights and universes
+    @todo_wkbk.save()
+  end   # of setup_todo
+
+  def check_run_results_dir()
+  # experiment API method called just prior to run start: helps to correctly id the upcomeing interim
+  # results download file by logging the number of .xls files in the P123/Google download directory
+
+    @prerun_xls_file_cnt = Dir[@pickup_filepath].length
   end
 
-  def fill_clm_values(row, clm, worksheet, indata, buffer = false)
-	# Add values to a column in the specified worksheet of a workbook
+  def record_run_results()
+  # experiment API method
+  # write results file and add performance results to Analysis file
+  # an interim tab-delimited version of the results file is download is placed on the
+  # hard drive before [view|save|cancel] download is selected
 
-    # Fill a worksheet column with data values starting at given row
-    rho = row
-    indata.each { |x| 
-       cell_data = worksheet.add_cell(rho,clm,x)		# RubyXL: x.add_cell works, x.change_contents doesn't
-       rho += 1
-    }
-    if buffer != 'nil' then cell_data = worksheet.add_cell(rho,clm, nil)	end # buffer column of entries with nil cell
+    # capture latest run results from the interim download file
+    # save to permanent file and transfer selected key results to Analysis
+    data = nab_results_file()
+
+    # do Analysis and transcribe results to collation area of file
+    log_analysis_results()
   end
+
+  def log_run_done()
+  # experiment API file:  logs number of run just completed to Setup to cue what   
+  # number run to resume with if a program failure occurs during the next run
+
+    @setup_cells[:current_run].value = @current_run
+    @setup_wkbk.save()
+  end
+
+            ###################################### Setup Methods ########################################
+            #############################################################################################
 
   def set_node_weights(node_cnt)
   # fill a random set of node weights until weights total 100 (percent): fixed 20%/node for now
 
     weights = Array.new(node_cnt, 0)  # clear weights to zeros
 
-   	#same weight may randowmly by picked twice: do until 5 separate weights are set
-   	while weights.inject(:+) < 100
-   		weights[rand(node_cnt) - 1] = 20	# convert random number{1..X} to random index{0..(X-1)}
+    #same weight may randowmly by picked twice: do until 5 separate weights are set
+    while weights.inject(:+) < 100
+      weights[rand(node_cnt) - 1] = 20  # convert random number{1..X} to random index{0..(X-1)}
     end
     return weights
   end
@@ -194,7 +199,7 @@ class Spreadsheet
   def experiment_file_exists?(filepath="")
   # if resuming, detects a file created when the experiment was set up initially 
 
-    file_name = filepath.split('/').last    # extra the file name from filepath
+    file_name = filepath.split('/').last    # extract the file name from filepath
 
     # remove file name from filepath to get directory path
     dirctry = filepath
@@ -207,45 +212,103 @@ class Spreadsheet
     return exists
   end
 
-  def if_runs_todo()
-  # checks for remaining runs and can catch bogus run conditions due to bad Setup values
-
-    if @runs_todo > 0 && @runs_todo >= @current_run then return true else return false end
-  end
+            ####################################### Run Methods #########################################
+            #############################################################################################
 
   def get_next_run_todo(node_weights)
-  # return the node weights and universe for the upcoming run
+  # experimnet API method:  read Todo for the upcoming run's node weights and universe
+  # weights are returned through the calling parameter array
 
-    # weights get returned through the calling parameter array
-    node_weights.each_index { |idx| node_weights[idx] = @todo_wksht[idx][@current_run].value }
-    # return with this run's universe name gotten from Todo
-    universe_name = @todo_wksht[@current_run - 1][@runs_todo + 2].value
+    # Todo col 1 contains node names so data col index is current_run + 1
+    # idx counts from 0 so must be +1 to match Todo counting rows from 1
+    node_weights.each_index { |idx| node_weights[idx] = @todo_wksht[idx+1, @current_run+1].value }
+
+    universe_name = @todo_wksht[@current_run, @universe_todo_col].value
     return universe_name
   end
-  
-  def incr_run_todo()
-  # update the run counter to upcoming run number
 
-    @current_run += 1
+  def nab_results_file()  
+  # nabs a tab delimited run results file while p123 is suspended mid-download waiting for 'save/cancel'
+  # choice to be made: file will have a .xls extension but converts to a real .xls only after a 'save'
+
+    # continue collecting list of download directory files with .xls extension 
+    # until a new one shows up or a timeout occurs (no. of sleep waits exceeds 5 sec)
+    file_list = []
+    tries = 0
+    while file_list.length <= @prerun_xls_file_cnt && tries < 25    
+      file_list = Dir[@pickup_filepath]
+      sleep(0.2)
+      tries =+ 1
+    end
+
+    # housekeeping should have deleted all but the latest .xls file but check for the newest file anyway
+    @download_file = newest_file(file_list)
+
+    # open interim download file and save as results "Run-XX.xlsx" file
+    @download_wkbk = RobustExcelOle::Workbook.open(@download_file, :excel => @p123_excel)
+    @download_wkbk.save_as(run_results_filepath(@base_results_filepath)) 
+
+    # open run results worksheet to copy and save essential results in Analysis
+    @download_wksht = @download_wkbk.first_sheet() 
+    copy_and_paste_Excel_clm(@download_wksht.col_range(2), @analysis_wksht.col_range(2))  
+    @analysis_wkbk.save() 
+
+    @download_wkbk.close()        # close the saved run results file 'Run-XX'
+    File.delete(@download_file)   # delete the interim results file from the download directory
+  end   # of nab_results()
+
+  def log_analysis_results()
+  # analyze most recent run data and copy the results to a run accumulation area
+
+    @analysis_wkbk.excel.Calculate()
+    @analysis_wkbk.save()
+
+    # transfer the row of values calculated by Analysis to the results accumulation area
+    @calcs = Array.new(108, 0)
+    read_Excel_row_section(2, 19, @analysis_wksht, @calcs)
+    write_Excel_row_section(10+@current_run, 19, @analysis_wksht, @calcs)
+    @analysis_wkbk.save()
   end
-  
+
+  def log_experiment_done() 
+  # experiment API method:  end of experiment housekeeping
+
+    # zero run completed count in Setup so next experiment doesn't try toresume
+    @setup_cells[:current_run].value = 0
+    @setup_wkbk.save()
+
+   # close experiment workbooks and Excel
+    @setup_wkbk.close()       # Setup
+    @todo_wkbk.close()        # Todo
+    @analysis_wkbk.close()    # Analysis
+    @p123_excel.close()       # close experiment's Excel instance
+  end
+
+            ######################################## File Mgmt ##########################################
+            #############################################################################################
+
   def convert_pc_path(path_string)
-	# converts a pc format path like "C:\\Users\\Scott" to "C:/Users/Scott"
+  # converts a pc format path like "C:\\Users\\Scott" to "C:/Users/Scott"
 
     char_array = path_string.chars
     char_array.each_index { |x| if char_array[x] == "\\" then char_array[x] = "/" end }
     path_string = char_array.join
   end
 
-  def write_run_results(results_table)
-    # writes run results to Excel file
+  def newest_file(file_list)
+  # returns the most recently created file in a list of files
 
-    results_filepath = run_results_filepath(@base_results_filepath)
-    results_table.each_index { |row|
-      results_table[row].each_index { |clm| @results_wksht.add_cell(row, clm, results_table[row][clm])
-      }
-    }
-    @results_wkbk.write(results_filepath)
+    # if more than one matching file in the directory list, return the most recently created file
+    file = file_list[0]
+    if file_list.length > 1 
+    then
+      idx = 1
+      while idx < file_list.length  
+        if File.birthtime(file_list[idx]) > File.birthtime(file) then file = file_list[idx] end
+        idx +=1
+      end
+    end
+    return file
   end
 
   def run_results_filepath(path_string)
@@ -255,13 +318,63 @@ class Spreadsheet
     path = path_string + if @current_run < 10 then "0" else "" end + @current_run.to_s + ".xlsx"
   end
 
-  def mock_test_table()
-  #generate a small table for testing xlsx array writing
+            ####################################### Excel Utils #########################################
+            #############################################################################################          
 
-    table = Array.new (4) { Array.new(3, 1) }
-    b=0
-    table.each { |x| table[b] = [b,b+2,b*3]; b+=1 } 
+  def fill_Excel_row_values(row, start_col, worksheet, indata)
+  # Excel rows & cols start at 1; accept only string entries of integers
+
+    # puts Time.now.strftime("%T %p - fill_Excel_row_values")
+    # Fill a worksheet row with a 1D array of data values but do not write the file
+    col = start_col
+    indata.each { |x|                                 
+       cell_data = worksheet[row, col] = x    #   add_cell either adds if cell == nil, else replaces
+       col += 1
+    }
   end
+
+  def fill_Excel_clm_values(start_row, col, worksheet, indata)
+  # enter values to a column of the specified worksheet starting at cell(start_row, col)
+  # Excel rows & cols start at 1; OLE utilities accept only string entries
+
+    # puts Time.now.strftime("%T %p - fill_Excel_clm_values")
+    # Fill a worksheet column with a 1D array of data values but does not save the file
+    row = start_row
+    indata.each { |x|                             
+#       worksheet[row, col] = x.to_s            
+       worksheet[row, col] = x           
+       row += 1
+    }
+  end
+
+  def copy_and_paste_Excel_clm(from_sheet_col, to_sheet_col)
+  # copies an Excel column from one workbook[worksheet] to another
+
+    # fill a worksheet column with a 1D array of data values but do not write the file
+    rows = 0
+    from_sheet_col.each_with_index { |c, idx| to_sheet_col[idx].value = from_sheet_col[idx].value, rows = idx } 
+  end
+
+  def read_Excel_row_section(row, col1, worksheet, row_data)
+  # row_data array must be pre-sized for number of cells to read
+
+    col = col1
+    row_data.each_index { |cell| 
+      row_data[cell] = worksheet[row, col]
+      col += 1
+    }
+  end
+
+  def write_Excel_row_section(row, col1, worksheet, row_data)
+  # row_data array must be pre-sized for number of cells to read
+
+    col = col1
+    row_data.each_index { |cell|
+      worksheet[row, col] = row_data[cell]
+      col += 1
+    }
+  end
+
 
   # ****************
   #  PRIVATE METHODS
@@ -269,21 +382,22 @@ class Spreadsheet
   # private methods not needed so much now but want placeholder as class grows
   private
 
-
   def experiment_setup
    {path: ENV["EXPERIMENT_SETUP_FILEPATH"]}
   end
 
-  def setup_file_cel1s
-    { current_run:        @setup_wksht[1][1] ,
-      runs_todo:          @setup_wksht[3][1] ,
-      experiment_folder:  @setup_wksht[4][1] ,
-      analysis_template:  @setup_wksht[5][1] ,
-      nab_filename:       @setup_wksht[6][1] ,
-      results_report:     @setup_wksht[7][1] ,
-      results_filename:   @setup_wksht[8][1] ,
-      P123_rank_URL:      @setup_wksht[10][1] ,
-      P123_screens_URL:   @setup_wksht[11][1]
+  def setup_file_cells
+    # Setup cell coordinates for experiment configuration factors
+    { current_run:        @setup_wksht[2,2] ,
+      runs_todo:          @setup_wksht[4,2] ,
+      experiment_folder:  @setup_wksht[5,2] ,
+      analysis_template:  @setup_wksht[6,2] ,
+      nab_file_path:      @setup_wksht[7,2] ,
+      results_report:     @setup_wksht[8,2] ,
+      results_filename:   @setup_wksht[9,2] ,
+      P123_rank_URL:      @setup_wksht[11,2] ,
+      P123_screens_URL:   @setup_wksht[12,2]
     }
   end
+
 end

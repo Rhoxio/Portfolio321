@@ -1,21 +1,15 @@
 require 'dotenv/load'
 require "selenium-webdriver"
 require "awesome_print"
-require 'rubyXL'
 require 'nokogiri'
+require 'robust_excel_ole'
 require 'pry'
 
 Dir["./lib/**/*.rb"].each {|file| require file }
 
-$driver = Selenium::WebDriver.for :chrome
-$wait = Selenium::WebDriver::Wait.new(:timeout => 15)
+# launce the experiment main loop
+Experiment.new()
 
-
-Experiment.new()		# launch the experiment mail loop
-
-# Conceivably add some mop up activities here
-
-# Pry opens up an IRB prompt that runs on the line where Pry is evoked with 'binding.pry'. 
-# You can also use this to debug code within the project.
-
+# Pry is a debugging tool that will create a breakpoint at any line in the
+# code where "binding.pry" is inserted 
 pry
