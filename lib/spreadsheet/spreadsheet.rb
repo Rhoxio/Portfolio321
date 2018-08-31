@@ -6,7 +6,7 @@ class Spreadsheet
 #   - creating experiment Analysis file from formula template file containing analysis algorithms
 #   - managing all state variables that guide/track progress through the experiment's runs
 #   - gathering results for each run and logging them files 
-#   - transferring key results to Analysis for analysis processing 
+#   - transferring key results to Analysis for analysis processing  
 # the term 'filepath' is used here to mean a path that includes a whole or base filename
 # a 'base' filename is something like 'Run - ' that gets a designator appended (e.g., run # '07')
 #################################################################################################

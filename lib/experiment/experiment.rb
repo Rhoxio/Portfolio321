@@ -33,7 +33,7 @@ class Experiment
  			@universe_names = @web_app.get_universe_names		# get array of universe names for spreadsheet use
 		  	@sheet.setup_todo(@node_names, @universe_names)		# pass names to spreadsheet
 		return true 			# successful prep
-		else return false 		# failed prep
+		else return false 		# failed prep 
 		end
 	end
 

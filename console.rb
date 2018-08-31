@@ -11,5 +11,5 @@ Dir["./lib/**/*.rb"].each {|file| require file }
 Experiment.new()
 
 # Pry is a debugging tool that will create a breakpoint at any line in the
-# code where "binding.pry" is inserted 
+# code where "binding.pry" is inserted  
 pry

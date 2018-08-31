@@ -126,7 +126,7 @@ class Portfolio321
   end
 
   def pull_universe_options
-  # get the available custom universes from P123
+  # get the available custom universes from P123 
 
     goto_screens_settings_tab()
     universes_form = $wait.until { @driver.find_element(:id, "universeUid") }
