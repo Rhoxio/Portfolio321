@@ -10,7 +10,10 @@ class Portfolio321
 #   - clearing run results after collection
 #   - logging off
 #
-#   Some legacy code is saved for reference in a comments block at the end of the file
+#   Only two pages beside Login are accessed and they are jumped between directly, avoiding
+#   intervening screen and component selection pages that must be traversed manually. This is
+#   accomplished by manually setting up an experiment run and capturing the URLs which include
+#   the specific P123 codes that identify the components selected for the experiment.
 ###############################################################################################
 
   # attr_reader makes it so you can call 'driver', 'exporter', or 'xlsx_parser' to read 
@@ -21,21 +24,19 @@ class Portfolio321
 
  
   def initialize( p123_urls, args = {} )
-    # Initialize is run when you create a new instance of a class.
-    # See start.rb if you want an example. 
+  # open the web driver, log in to P123, pull node weight and universe records from site
 
-    # This block is here just in case you need to pass in a different driver.
-    # default_driver is the failover method that will always use the default driver.
-    # @ is an instance variable and can be evoked only in this instance of this class.
-
+    # this block is here just in case a need arises to pass in a different driver
+    # default_driver is the failover method that will always use the default driver
     open_web_driver()
     @driver = args[:driver] ||= default_driver
     @login_info = args[:login_info] ||= default_login_info
 
-    if args[:log_in]
+    if args[:log_in]  # log in to P123 if directed to do so
       log_in()
     end
 
+    # save off the Urls for required P123 pages
     @p123_rank_system_url = p123_urls[0]
     @p123_screens_url = p123_urls[1]
 
@@ -44,15 +45,18 @@ class Portfolio321
   end
 
   def log_in
+  # log in to P123 website
 
-    go_to(ENV["LOGIN_URL"])
-   
+    go_to(ENV["LOGIN_URL"])   # go to login page
+
+    # enter the P123 account user id and password
     login_box = @driver.find_element(:id, "LoginUsername")
     login_box.send_keys(@login_info[:username])
 
     pw_box = @driver.find_element(:id, "LoginPassword")
     pw_box.send_keys(@login_info[:password])
 
+    # click the 'Login' button
     signin_btn = @driver.find_element(:id, "Login")
     signin_btn.click()
   end
@@ -66,7 +70,7 @@ class Portfolio321
   end
 
   def get_node_names
-  # returns an array of rank node names pulled from P123
+  # experiment API: returns an array of rank node names pulled from P123
 
       node_names = Array.new
       @node_weights.each_with_index { |node, idx| node_names[idx] = node[:name]}  
@@ -78,30 +82,34 @@ class Portfolio321
     
     goto_node_weights_tab
 
+    # find the node weights table and extract the desired portion of it
     table = $wait.until {
       element = @driver.find_element(:id, "weights-cont-table")
     }    
-    
     td = table.find_elements(:xpath, "./tbody/tr/td")
-    paired_td = td.each_slice(2).to_a
 
+    # assign a new array with the desired element of each entry in the other array 
+    paired_td = td.each_slice(2).to_a    
+
+    # create an array of node weight hashes of the node name, storage location id, and weight value
     data = paired_td.map do |td|
       input = td[1].find_elements(:xpath, "./input")[0]
 
       { name: td[0].text, input_id: input.attribute('id'), input_value: input.attribute('value') }
     end
 
-    # Removing the header (index 0) of the table as it isn't data we need to act upon.
+    # remove the header (index 0) of the table as it isn't data that get used
     data.shift
 
     return data
   end
 
-  def push_node_weights(node_weights)  # node_weights is an array of :value
-  # send the Todo node weights for this run to P123
+  def push_node_weights(node_weights)  
+  # experiment API: send the node weights for this run to P123
+  # node_weights parameter is an array of :value
 
     goto_node_weights_tab
-    # value must NOT be set to 0 or all weights are filled in with an extra 0, or 10x values
+    # value must NOT be set to 0 or all weights are filled in with an extra 0, creating 10x values
     value = nil   
     idx = 0
     @node_weights.each do |node_data|
@@ -118,7 +126,7 @@ class Portfolio321
   end
 
   def get_universe_names
-  # returns an array of screener universe names pulled from P123
+  # experiment API: returns an array of screener universe names extracted from the custom universes pulled from P123
 
       universe_names = Array.new(@universes.length, "")
       @universes.each_index { |idx| universe_names[idx] = @universes[idx][:text] }  
@@ -126,7 +134,7 @@ class Portfolio321
   end
 
   def pull_universe_options
-  # get the available custom universes from P123 
+  # experiment API: get the available custom universes from P123: custom group is at (:xpath, "./optgroup")[-1])
 
     goto_screens_settings_tab()
     universes_form = $wait.until { @driver.find_element(:id, "universeUid") }
@@ -142,7 +150,7 @@ class Portfolio321
   end
 
   def push_universe(universe_name)
-  # send the Todo universe for this run to P123
+  # exoeriment API: send the Todo universe for this run to P123
 
     goto_screens_settings_tab()
 
@@ -155,7 +163,7 @@ class Portfolio321
     selected_option.click
   end
 
-  def goto_node_weights_tab
+  def goto_node_weights_tab()
   # navigate to P123 rank systmens page then to the weights tab
 
     go_to(@p123_rank_system_url)
@@ -164,20 +172,22 @@ class Portfolio321
     weights_tab.click    
   end
 
-  def goto_screens_settings_tab
+  def goto_screens_settings_tab()
   ## navigate to P123 Screens page then to Settings tab
 
     go_to(@p123_screens_url)
-    sate_navigation_alert() 
+
+    # dispose of the dialog box that arises when jumping from some pages to this particular page
+    sate_navigation_alert()  
 
     settings_tab = $wait.until { @driver.find_element(:id, "scrtab_7") }
     settings_tab.click
   end
 
-  def goto_run_backtest_tab
+  def goto_run_backtest_tab()
   # navigate to P123 Screens page then to Backtest tab
 
-    go_to(@p123_screens_url)     # apparently Selenium doesn't like going to the page it's already on
+    go_to(@p123_screens_url) 
     tab = $wait.until { @driver.find_element(:id, "scrtab_3") }
     tab.click
   end
@@ -187,7 +197,7 @@ class Portfolio321
 
     goto_run_backtest_tab()
 
-    # all :id's - clearResults, runScreen, rerunScreen, runBacktest, reRunBacktest, runRBacktest, rerunRBacktest
+    # all :id options - clearResults, runScreen, rerunScreen, runBacktest, reRunBacktest, runRBacktest, rerunRBacktest
     run_button = $wait.until { @driver.find_element(:id, "runBacktest") }
     run_button.click
 
@@ -201,29 +211,31 @@ class Portfolio321
     else
       dl_button = $wait.until { @driver.find_element(:xpath, "//*[@id='results-table']/table/thead/tr[1]/th/div/div/a") }
     end
-    dl_button.click
 
-    # return until notified that the results file has been saved
+    # click to download chosen report, causing an interim file to be downloaded
+    # the Backtest page then waits for a 'save' or 'cancel' selection to be made
+    # see Spreadsheet for a description of how this interim file is captured during the wait
+    dl_button.click
   end
 
-  def terminate_backtest ()
-  # hit 'Clear Backtest Results' button to terminate download and ready Backtest page for next run
+  def terminate_backtest()
+  # click 'Clear Backtest Results' to stop pending on download completion while readying Backtest page for next run
 
     button = $wait.until { @driver.find_element(:id, "clearResults") }
     button.click
 
-    # leave page to end download process and handle dialog box caused by this particular page change
+    # leave page to cause download process to end; handle dialog box raised by this particular page change
     go_to(@p123_rank_system_url)
     sate_navigation_alert() 
     return
   end
 
-  def end_experiment
+  def end_experiment()
     @driver.quit
   end
 
-  def sate_navigation_alert
-  # accept (hit 'Leave' button) on the Leave/Cancel dialog box warning of possible unsaved changes
+  def sate_navigation_alert()
+  # accept (click 'Leave') on the Leave/Cancel dialog box that warns of possible unsaved changes
 
     @driver.switch_to.alert.accept rescue Selenium::WebDriver::Error::NoAlertOpenError
   end
@@ -232,18 +244,15 @@ class Portfolio321
   # # # # # # # # # # # # #  
   # START OF PRIVATE METHODS
   # # # # # # # # # # # # # 
+
   private
 
-  # We don't want or need these two ENV variables to be available anywhere else,
-  # so we use a Prvate method to make it so only this specific instance of this class
-  # can access it. Keeps the public interface clean.
-
-  def default_login_info
+  def default_login_info()
     {username: ENV["LOGIN_USERNAME"], password: ENV["LOGIN_PASSWORD"]}
   end
 
-  def open_web_driver
-  # self evident
+  def open_web_driver()
+  # select driver for Chrome and a 15s max wait time for P123 responses
 
     $driver = Selenium::WebDriver.for :chrome
     $wait = Selenium::WebDriver::Wait.new(:timeout => 15)
@@ -251,8 +260,8 @@ class Portfolio321
 
   def go_to(url)
   
-#    sate_navigation_alert()
-    # if not already on a page, go there: @driver urps trying to go to the current page
+    # check not already on a page before going there: 
+    # @driver urps trying to go to the current page
     if url != @driver.current_url then @driver.navigate.to(url) end
   end
 

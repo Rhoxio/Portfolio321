@@ -11,12 +11,12 @@ class Experiment
 	# instantiate other main classes, prep to execute experiment runs, launch runs, and clean up when done
 
 		
-		puts Time.now.strftime("%T %p - File Init")
+		puts Time.now.strftime("%r - File Init")
 		# create all paths, file names, data workbooks
 		@sheet = Spreadsheet.new()
 
 		# login to P123 so rank & universe data for run can be uploaded
-		puts Time.now.strftime("%T %p - Web Init")
+		puts Time.now.strftime("%r - Web Init")
 		@web_app = Portfolio321.new( @sheet.get_p123_urls, { log_in: true } )
 		prep_success = prep_experiment()
 
@@ -33,7 +33,7 @@ class Experiment
  			@universe_names = @web_app.get_universe_names		# get array of universe names for spreadsheet use
 		  	@sheet.setup_todo(@node_names, @universe_names)		# pass names to spreadsheet
 		return true 			# successful prep
-		else return false 		# failed prep 
+		else return false 		# failed prep
 		end
 	end
 
